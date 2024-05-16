@@ -19,3 +19,5 @@ wikipedia
 arxiv
 langchainhub
 transformers
+langchain
+sentence_transformers
