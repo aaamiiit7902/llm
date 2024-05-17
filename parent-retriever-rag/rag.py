@@ -1,12 +1,11 @@
 from langchain.schema import Document
-from langchain.vectorstores import Chroma
+from langchain_community.vectorstores import Chroma
 from langchain.retrievers import ParentDocumentRetriever
 
-## Text Splitting & Docloader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.storage import InMemoryStore
-from langchain.document_loaders import TextLoader
-from langchain.embeddings import HuggingFaceBgeEmbeddings
+from langchain_community.document_loaders import TextLoader
+from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain.chains import RetrievalQA
 from langchain_community.llms import Ollama
 
@@ -23,14 +22,14 @@ bge_embeddings = HuggingFaceBgeEmbeddings(model_name="BAAI/bge-small-en-v1.5",
 encode_kwargs={"normalize_embeddings": True})
 
 loaders =  [
-    TextLoader("./data/data.txt")
+    TextLoader("./data/data-old.txt")
 ]
 docs = []
 for l in loaders:
     docs.extend(l.load())
-parent_splitter = RecursiveCharacterTextSplitter(chunk_size=2000)
+parent_splitter = RecursiveCharacterTextSplitter(chunk_size=1000)
 
-child_splitter = RecursiveCharacterTextSplitter(chunk_size=400)
+child_splitter = RecursiveCharacterTextSplitter(chunk_size=200)
 vectorstore = Chroma(collection_name="split_parents", embedding_function=bge_embeddings)
 
 # The storage layer for the parent documents
@@ -54,9 +53,11 @@ qa = RetrievalQA.from_chain_type(llm = llm,
 
 
 
-app = FastAPI()
-prompt_template = """\
-Use the provided context to answer the user question. If you don't know the answer, just say you don' know
+app = FastAPI(
+    title="I am here to Serve Brutus",
+    description="Endpoints of Brutus to be used in your application"
+)
+prompt_template = """You are an AI assistant created by Brutus, Use the provided context to answer the user question. If you don't know the answer, just say you don't know
 
 Context:
 {context}
@@ -75,6 +76,6 @@ rag_chain = entry_point_chain| rag_prompt | llm | StrOutputParser()
 async def redirect_root_to_docs():
     return RedirectResponse("/docs")
 
-add_routes(app, rag_chain, path="/rag")
+add_routes(app, rag_chain, path="/brutus")
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
