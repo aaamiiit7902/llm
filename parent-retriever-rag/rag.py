@@ -22,7 +22,7 @@ bge_embeddings = HuggingFaceBgeEmbeddings(model_name="BAAI/bge-small-en-v1.5",
 encode_kwargs={"normalize_embeddings": True})
 
 loaders =  [
-    TextLoader("./data/data-old.txt")
+    TextLoader("./data/data.txt")
 ]
 docs = []
 for l in loaders:
