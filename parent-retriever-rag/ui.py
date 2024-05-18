@@ -26,15 +26,15 @@ with st.sidebar:
     st.header("About")
     st.markdown(
         """
-        Hi! I am Brutus, created by Amit and Aayush. I'm here to assist you with your queries related to RDK, OneShop Inventory, SLC, and more. 
-        Feel free to ask me anything—I'm here to help! Please note, I am still in development, so I might not be perfect yet, but I'm continuously learning and improving. 
+        Hi! I am Brutus, created by Amit and Aayush. I'm here to assist you with your queries related to the Opensource RDK Broadband Ecosystem – its microservices, APIs, configrations, etc, as well as some info about OneShop Inventory and Sales Catalog. \n
+        Feel free to ask me anything — I'm here to help! Please note, I am still in development, so I might not be perfect yet, but I'm continuously learning and improving. 😄 \n
         Looking forward to assisting you!
         """
     )
     
 st.title("Ask Brutus")
 st.info(
-    "Ask me a question about OneShop Inventory, SLC, RDK, etc."
+    "Ask me a question about RDK Components, OneShop, etc."
 )
 
 if "messages" not in st.session_state:

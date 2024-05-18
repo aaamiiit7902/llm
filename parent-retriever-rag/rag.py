@@ -17,7 +17,7 @@ from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain.schema import StrOutputParser
 import uvicorn
 
-llm = Ollama(model="brutus-no-sys")
+llm = Ollama(model="brutus")
 bge_embeddings = HuggingFaceBgeEmbeddings(model_name="BAAI/bge-small-en-v1.5", 
 encode_kwargs={"normalize_embeddings": True})
 
