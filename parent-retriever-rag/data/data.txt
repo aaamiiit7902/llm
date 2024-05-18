@@ -2227,3 +2227,263 @@ Beyond TR-181:
 Data Exposure: CPE devices implement TR-181 by exposing their data model through an interface (typically a web interface) that the management system can access using protocols like HTTP.
 Data Transfer: The TR-069 protocol governs the communication flow between the CPE device and the management system, including the exchange of data based on the TR-181 data model.
 In conclusion, TR-181 plays a vital role in enabling standardized and interoperable remote management of CPE devices. By defining a common data model, it simplifies communication between management systems and various CPE devices, leading to more efficient and streamlined network management for service providers.
+
+
+
+MongoDB for operational data and Elastic Search for real-time search capabilities on the front-end.
+
+
+
+Netflix Conductor is used as an orchestration engine to manage workflows between microservices for tasks such as calculating capacity status and updating catalog status.
+
+
+
+Real-time synchronization is achieved through event-driven architecture, where MongoDB change events trigger workflows in Netflix Conductor to update the system status.
+
+
+
+It listens to changes in MongoDB and triggers the Conductor workflows to process these changes and update the system status accordingly.
+
+
+
+When an item is added to a shopping cart, it is reserved for a set duration (X minutes), during which the inventory count is temporarily adjusted.
+
+
+
+If the order is not placed within the reservation time, the system automatically reverts the inventory status and updates the catalog to reflect the availability.
+
+
+
+An admin updates the stock count in the inventory system, which triggers a synchronization process to reflect these changes across the sales channels.
+
+
+
+Elastic Search documents are updated via workflows managed by Netflix Conductor to reflect the latest inventory status, ensuring that the most current data is displayed.
+
+
+
+The IN-STOCK status is maintained based on real-time data from MongoDB, processed through event-driven workflows to update Elastic Search documents
+
+
+
+Devices available for PRE-ORDER are marked accordingly in the system and displayed on sales channels, with stock availability managed separately until actual stock is received.
+
+
+
+The OUT-OF-STOCK status is automatically set when inventory levels drop to zero, with updates propagated to sales channels through event-driven updates.
+
+
+
+When the last unit of a device is reserved, the inventory status changes to OUT-OF-STOCK, triggered by the change stream and processed by the event-driven core.
+
+
+
+Data loads can be initiated manually through an admin UI or automatically via integration with warehouse systems, which then trigger status synchronization processes.
+
+
+
+The system uses Spring Boot-based microservices for different functionalities like sales inventory, sales catalog, and more, interconnected through event-driven workflows.
+
+
+
+Changes in inventory trigger MongoDB events that are processed by Conductor workflows to update device status in the sales catalog maintained in Elastic Search.
+
+
+
+When a reservation expires without a purchase, the stock status is updated back to available, triggering synchronization across the inventory and sales catalog.
+
+
+
+Event-driven workflows ensure consistency by updating all relevant components in real time as inventory changes occur.
+
+
+
+The system reserves devices only for a limited duration and updates inventory in real time to prevent overbooking based on current stock levels.
+
+
+
+The system is designed to handle failures gracefully, ensuring data consistency and reliability through robust error handling and recovery mechanisms within the microservices architecture.
+
+
+
+Device availability is communicated through real-time updates on the website and app, directly reflecting the current stock status from the inventory system.
+
+
+
+This transition occurs when a device's last unit is reserved or sold, triggering event-driven updates to mark the device as OUT-OF-STOCK across all channels.
+
+
+
+The sales inventory solution of OneShop, our e-commerce product, is a multitenant solution unified for all channels including OneShop, OneApp, etc., and natcos. It ensures near-real-time synchronization between sales views and warehouse stock. The inventory management flow involves an admin updating stocks of devices in the inventory whenever a new batch of devices is received. A user on a channel such as web or app shows interest in devices available in stock, and as soon as the user adds a device to his shopping cart, it gets reserved for a specified number of minutes. If a user places an order within this timeframe, the device count is subtracted from the stock. Once devices from the pool are exhausted, the admin updates the pool again. The system handles a few important states of products: IN-STOCK if more than one unit of a device is available in the warehouse, OUT-OF-STOCK if no units are available, and available for PRE-ORDER if it is a new exclusive launch. The synchronization challenge involves ensuring that the device listing powered from the Sales Catalog reflects the correct state (IN-STOCK, OUT-OF-STOCK, PRE-ORDER) of the device. Creating a reservation in Sales Inventory for the specified minutes may update the status of the device if there was only one unit of the device left in stock, signifying a transition of device state from IN-STOCK to OUT-OF-STOCK. Cancelling a reservation in Sales Inventory after the specified minutes should influence the status of the device if there was only one unit of the device left in stock, signifying a transition of device state from OUT-OF-STOCK to IN-STOCK. We addressed the synchronization between physical inventory and devices pool database, how to reserve a device for a specified duration, ensuring the device reservation expires at the correct time, achieving consistency between real-time user orders and inventory updates by an admin, and updating Elastic Search documents in the sales catalog with the correct state to ensure IN-STOCK devices come on top. The tech stack includes MongoDB, Elastic Search, Netflix Conductor (orchestration engine), and Spring Boot-based microservices. We broke down the problem into four parts: Status synchronization event-driven core is used as the center of the implementation to synchronize the status of the device due to operations like inventory load, reservation updates, and orders. Any update operation in sales inventory (POST/PUT) leads to a change in data in MongoDB, generating a change event which is listened by a change stream event listener running in the sales inventory microservice. This listener starts a conductor workflow which then starts a task calculate_capacity_status executed in an inventory microservice to compute the status of the device by reading available stock and count of the number of reservations at the moment. The conductor then makes a decision whether there is a change of status in the sales catalog, and if the state change is applicable, it starts a task update_catalog_capacity_status to update the state of the device in ES. This task is executed in the sales catalog microservice to update the status of a device from IN-STOCK to OUT-OF-STOCK and vice versa. Load data into sales inventory can be done manually by admin or real-time requests from the warehouse through inventory admin UI or automatically through a distributor connected to the warehouse. POST API operations on sales inventory lead to the data change in MongoDB which then executes the 'Status synchronization event-driven core' shown above. Sales inventory updates on add to cart involve an addition of an item to a shopping cart or submitting an order which can lead to a change in the state of the device. Whenever an item is added to a shopping cart, it is reserved for the specified duration in a temporary document with a TTL within the reservation collection. When the reservation expires, documents get deleted from the collection and change stream events trigger the 'Status synchronization event-driven core'. The same happens in the case of submitting an order, meaning promotion of reservation to order, hence the actual count of inventory is decremented and triggers the 'Status synchronization event-driven core'. Exposure of status to channels involves querying the status or count of each device left in stock as Sales inventory exposes simple GET operations from its core for this purpose. The solution highlights include a modular and event-driven design, with multiple microservices being loosely coupled, the use of mongo change event to listen to every change in the state of inventory, conductor workflows to remove coupling between sales catalog and sales inventory, and a single driver to update the change in the state of devices.
+
+
+
+Inefficiencies in building microservices directly in production environments prompted the need for CI/CD.
+
+
+
+Manual processes made deployments time-consuming and error-prone, requiring multiple steps and checks.
+
+
+
+OneShop followed a release-based branching approach, creating branches per release cycle.
+
+
+
+This method caused delays in integration, made builds complex, and CI setup confusing.
+
+
+
+It supports CI more effectively, allows multiple release versions, and provides clarity in deployment.
+
+
+
+It is used for active development, where developers commit ongoing changes and enhancements.
+
+
+
+It handles advanced testing and integration, ensuring features work seamlessly with existing code.
+
+
+
+After QA confirms stability, code moves to the Release branch for final adjustments before production.
+
+
+
+It represents the most stable version of the code, ready for production deployment.
+
+
+
+It ensures all branches are updated with the latest tested code, reducing conflicts.
+
+
+
+They allow isolated testing by developers, minimizing disruptions in the main development flow.
+
+
+
+They replicate production conditions for performance testing and final adjustments.
+
+
+
+It's used for final verifications by QA teams before the software goes live.
+
+
+
+User Acceptance Testing to ensure the software meets all user expectations.
+
+
+
+Unit tests, integration tests, and performance tests to ensure code quality and functionality.
+
+
+
+They help manage artifacts specific to each development stage, ensuring quick access and consistency.
+
+
+
+Jenkins for automation of builds and deployments, GitLab for repository management.
+
+
+
+Through GitLab, where all code is version-controlled, enabling easy tracking and management of changes.
+
+
+
+Artifact management ensures reliable and consistent access to necessary resources during builds and deployments.
+
+
+
+Older releases are managed through tags and separate branches, allowing for ongoing support and bug fixes.
+
+
+
+A development process involves crafting code and initiating deployment, a practice that unfortunately resulted in significant time consumption for OneShop. The reason was that micro-services were built directly in the environments without knowing if the code was in a buildable state. Like many of us, we'd fix things as we went along, but it was clear that we needed to streamline this process. That's when Continuous Integration and Continuous Deployment (CI/CD) entered the scene. Before we dive into the problem, let’s take a quick stroll down memory lane to see how things used to be: We followed the Agile methodology, working in two-week sprints and branching our code based on release patterns like release-. (e.g., release-23.20). Publishing shared JAR files on Nexus was a manual task, which, as you can imagine, could get quite tedious. The deployment process required multiple clicks and checks just to ensure a single deployment went smoothly. And to top it all off, we were doing manual deployments for 10–15 micro-services. Can you say “time-consuming”? So yeah, things needed a bit of a makeover. When you see “manual,” it’s a sign of trouble. And those slow deployments caused by the assembly line of jar building? We need to make that process faster and smoother! The Branching Strategy The brainstorming session started by taking a hard look at the current way of managing branches. This involved keeping a branch for each release cycle, using one version for all shared libraries, and doing manual builds (with Jenkins, but still a hands-on process) It had its perks; it made keeping track of versions and supporting older releases straightforward. But, as you can imagine, it had its fair share of problems too like delayed integration, a complicated build process, and a confusing CI setup. In the next step, we explored different branching strategies like trunk-based, feature-based, forking, and environment-based. After lots of discussions and brainstorming, the environment-based branching made the most sense. This environment-based branching strategy came with some real perks. For starters, it made Continuous Integration (CI) much easier to handle. It could still support multiple release versions using tags, and having a separate branch for each environment gave more control and clarity in the deployment process. So, all in all, it was a win-win. To tackle existing branching & manual deployment issues, a structured approach was adopted by introducing four specific branch types: ‘dev,’ ‘qa,’ ‘release,’ and ‘master.’ For a clearer understanding, please review the diagram below. Software development lifecycle in OneShop, incorporating branching strategies, deployment environments, and configuration management via Nexus profiles. It begins with the 'Dev' branch, a primary arena for active development where developers commit ongoing changes and enhancements. From here, changes are merged into the 'QA/Intermediate' branch for advanced testing and integration, ensuring that new features integrate seamlessly with existing code. This approach mitigates risks and promotes stable builds. Once the QA process confirms the build's stability, the code progresses to the 'Release' branch. This branch serves as a pre-production holding area, where final adjustments are made before the software is deemed ready for release. Post-validation in the release branch, the code is merged into the 'Master' branch, which represents the codebase's most stable version, ready for deployment to the production environment. Throughout this process, back-merging plays a critical role in ensuring all branches remain updated with the latest tested and approved code, minimizing conflicts and discrepancies across the development lifecycle. Specifically, code is frequently merged back from the 'QA/Intermediate' branch to the 'Dev' branch and from the 'Release' branch back to both 'QA/Intermediate' and 'Dev'. This ensures that any fixes or updates integrated during the testing phases are reflected back in the development branches. The environments section of the diagram delineates several stages of deployment: multiple development environments ('Dev' and 'Dev2') allow developers to test in isolated settings, preventing disruptions in the main development flow. Several staging environments ('Stage2', 'Stage3', 'Stage4', 'Stage5' 'Stage6', 'Stage7' and a general 'Stage') replicate the production environment, which is crucial for performance testing and final tweaks. The 'Preprod' and 'UAT' (User Acceptance Testing) environments are pivotal for final verifications by quality assurance teams and clients respectively, ensuring the software meets all user expectations and requirements. The 'Prod' environment is where the fully tested and approved application is finally deployed, accessible to end-users. Additionally, the 'Mkt' environment could suggest a specialized setting used for marketing or demonstrations to stakeholders. Lastly, the Nexus profiles outlined ('eshop-dev', 'eshop-qa', 'eshop-release', 'eshop-prod', and 'eshop-stage') correspond to different stages of the development pipeline in a Nexus repository
+
+
+
+OneShop evaluated its performance under heavy load to prepare for high-demand scenarios like sales or festive seasons. The initial findings revealed that the system did not scale up as expected, leading to failures and errors, particularly in device and tariff listing pages.
+
+
+
+During high traffic periods, the Sales Catalog APIs were unable to handle the sudden increase in load, resulting in slow response times and errors, which directly impacted user experience and sales performance.
+
+
+
+OneShop's initial approach to solving scalability problems involved horizontal scaling, specifically by increasing the number of Sales Catalog API Pods to distribute the load more effectively.
+
+
+
+By increasing the number of Sales Catalog API Pods, OneShop was able to enhance the throughput of the system, allowing it to handle more requests per unit of time. However, this solution reached a limit, and failures started occurring again once that limit was exceeded.
+
+
+
+OneShop increased the number of nodes and the size of each node in its ElasticSearch Cluster. This expansion helped in better managing the data and requests, which significantly reduced API failures.
+
+
+
+Reducing the response size by removing unnecessary HTML content from the API responses was intended to improve performance. Although this change did result in some improvement, it was not as significant as expected, suggesting other underlying performance issues.
+
+
+
+OneShop introduced a caching layer to achieve faster response times for duplicate requests, aiming to reduce the load on the backend servers and improve overall system performance.
+
+
+
+Despite introducing caching, the performance improvements plateaued around 600 requests per second (RPS), which was already achievable through previous scaling efforts. This indicated that caching alone was insufficient to handle peak loads effectively.
+
+
+
+Thread dump analysis revealed that application threads were frequently in a WAITING state due to synchronous log writing, identifying excessive logging as a major performance bottleneck.
+
+
+
+OneShop optimized its logging by removing unnecessary logs, reducing log size, and moving to asynchronous log writing, which significantly relieved the load on the system by reducing waiting times for log writes.
+
+
+
+Asynchronous log writing minimized the waiting time of application threads that was previously caused by synchronous log operations, thereby enhancing the overall efficiency and responsiveness of the system.
+
+
+
+After identifying additional inefficiencies in the code, OneShop corrected unnecessary object-string conversions and streamlined various processes to further reduce system latency and improve API response times.
+
+
+
+Network limitations on EC2 machines restricted the response size per second, which limited the system's ability to scale up during peak traffic periods. OneShop considered increasing instance sizes and using burst credits to temporarily enhance capacity.
+
+
+
+Burst credits allowed OneShop's EC2 instances to temporarily exceed their baseline performance limits during unexpected spikes in traffic, providing a short-term solution to maintain service levels.
+
+
+
+The state of the AWS Elastic File System (EFS), particularly when it became filled, significantly reduced the system's throughput. This highlighted the importance of monitoring and managing EFS capacity to avoid performance degradation.
+
+
+
+OneShop focused on improving throughput, measured in requests per second (RPS), and response times, as reflected in their P95 graphs, which indicated significant enhancements from 600 RPS to around 2800 RPS after optimizations.
+
+
+
+The ELK Stack was used extensively by OneShop for logging and monitoring. It helped in analyzing log data and performance metrics, which were crucial for identifying issues and measuring the impact of implemented changes.
+
+
+
+Grafana and Prometheus were used by OneShop to fetch critical metrics and visualize performance data. These tools provided real-time insights into system health and were instrumental in proactive performance management.
+
+
+
+AWS CloudWatch provided OneShop with first-hand information on infrastructure metrics, allowing them to monitor system performance, set alarms, and react swiftly to potential issu
+
+
+
+OneShop recognizes that maintaining API performance is an ongoing challenge, requiring continual monitoring, testing, and optimization. They plan to keep refining their strategies and adapting to new technologies to ensure scalability and reliability.
+
+
+
+Here is the detailed blog on SLC API scaling which was one : https://medium.com/deutsche-telekom-gurgaon/how-we-scaled-up-the-sales-catalog-api-19eb582b5c97
+
+
+
+Scaling Sales Catalog APIs and, in turn, scaling OneShop APIs. The backstory goes like this—a few months back, the business decided to check how OneShop performs when put under heavy load and in a sudden burst of traffic. To our surprise, the system did not scale up as expected and instead started failing and throwing errors to the end user. Our device and tariff listing pages had failed us. What did we do? As any engineer would when faced with API failures due to load, the first thing we did was to increase the number of Sales Catalog API Pods (Horizontal Scaling). This increased the throughput to an extent, but we started getting failures after a point. The next thing that came to our mind was to increase the resources available to the APIs. In this case, it meant increasing the number of nodes in our ElasticSearch Cluster and also increasing the size of each ElasticSearch Node in the cluster. This further reduced the number of API failures and provided us with much-needed time to dig deeper into this problem. We started analyzing the response from each layer, the databases, and each API being called to serve the listing response. We found out that we were passing HUGE pieces of HTML Content (Thank you, Admins :-) ) that were of no use in the listing response. So, we chalked that out. And voila! The APIs started performing as expected! Sadly, this was not the case. The performance improved but was nowhere near what we wanted. We introduced a separate caching layer in our application because why not! The expectation after introducing caching was clear: blazing-fast responses for duplicate requests. This is what we thought as well. Yet again, this was not the case. In our load tests, we found that the throughput did not increase much even after adding a caching layer. It started plateauing around 600 RPS. This was what we had already achieved after scaling up the production environment and was not something we were aspiring for.We tried taking thread dumps from pods and started analyzing them. We found something very unexpected during our analysis. Until this point, we had not expected our logs to be a bottleneck for the application. After all, these are the best weapons we have when fighting a production issue. During our thread dump analysis, we found that the application threads were in a WAITING state just to write logs. This opened multiple fronts for us: we are printing too many unnecessary logs, the log size is very large and needs to be reduced, since our response payload can be fairly large, it meant an increased load on the logging system, and the logs are written in a synchronous fashion. We performed these steps to overcome these problems: we removed the unnecessary logs and updated the log levels as per the severity, we stopped the unnecessary printing of objects in logs, we removed the response objects from our logs, and we moved to asynchronous writing of logs. After fixing the logs, we went again to further analyze the thread dumps. We found further issues with the code. The threads were still in a WAITING state. We found that we were unnecessarily converting objects to string and vice versa before responding to the request. We fixed this as well and were ready for our last leg. After all the optimizations, we started performing regular load tests on the APIs and overnight soak tests. We observed that after multiple successful runs, an odd run would fail unexpectedly, or the system would not scale as much, or would scale down and plateau to a constant RPS. Upon digging deep into this problem, we read about machine network limitations and burst credits. To summarize, each EC2 machine can only send out a limited response size per second. This can be increased by increasing the instance size or momentarily using burst credits. Now we had found the answers! We had achieved the limits of the available hardware and were even using the burst credits. This was the reason for the dip in response and plateauing of the RPS graph. In our tests, we found that the throughput depended upon the state of the AWS Elastic File System as well. This is the place where we write our logs. When the EFS filled up, the RPS reduced and the system would not scale up. We use the ELK Stack for our logging needs. So, we leveraged that to plot graphs to measure the response times against the critical operation times. These should be very much near each other. We also used Grafana and Prometheus to fetch the critical metrics of the application. We also used AWS CloudWatch extensively to get first-hand information on our infrastructure. Using the above-mentioned approach, we were able to increase the throughput of the APIs from 600 RPS to around 2800RPS. Our P95 Graphs also improved indicating the improvement in response times. We were able to increase these metrics and the system survives under spikes and huge loads. However, the API performance track cannot be closed and is a never-ending process.
