@@ -8,8 +8,9 @@ with st.sidebar:
     st.header("About")
     st.markdown(
         """
-        Hi!, I am Brutus, created by Amit and Aayush, I am here to assist you today on your queries, related to RDK, OneShop Inventory, SLC, and some other things.
-        Feel free to ask your doubts and questions, but keep in mind I am still under development :)
+        Hi! I am Brutus, created by Amit and Aayush. I'm here to assist you with your queries related to RDK, OneShop Inventory, SLC, and more. 
+        Feel free to ask me anything—I'm here to help! Please note, I am still in development, so I might not be perfect yet, but I'm continuously learning and improving. 
+        Looking forward to assisting you!
         """
     )
     
