@@ -22,4 +22,3 @@ transformers == 4.40.1
 langchain == 0.1.16
 sentence_transformers == 2.7.0
 pydantic == 1.10.13
-gradio == 4.31.3
