@@ -2,7 +2,7 @@ import os
 import requests
 import streamlit as st
 from PIL import Image
-
+st.set_page_config(page_title="Ask Brutus", page_icon=":robot_face:")
 CHATBOT_URL = os.getenv("CHATBOT_URL", "http://0.0.0.0:8000/brutus/invoke")
 
 # Load and display the image

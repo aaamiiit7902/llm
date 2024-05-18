@@ -33,7 +33,7 @@ for l in loaders:
     docs.extend(l.load())
 parent_splitter = RecursiveCharacterTextSplitter(chunk_size=1000)
 
-child_splitter = RecursiveCharacterTextSplitter(chunk_size=200)
+child_splitter = RecursiveCharacterTextSplitter(chunk_size=300)
 vectorstore = Chroma(collection_name="split_parents", embedding_function=bge_embeddings)
 
 # The storage layer for the parent documents
@@ -61,7 +61,7 @@ app = FastAPI(
     title="I am here to Serve Brutus",
     description="Endpoints of Brutus to be used in your application"
 )
-prompt_template = """You are an AI assistant created by Brutus, Use the provided context to answer the user question. If you don't know the answer, just say I need more context
+prompt_template = """You are an AI assistant created by Brutus, Use the provided context to answer the user question. If you don't know the answer, try to find the closest possible answer from the context.
 
 Context:
 {context}
