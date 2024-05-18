@@ -8,7 +8,7 @@ from langchain_community.document_loaders import TextLoader
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain.chains import RetrievalQA
 from langchain_community.llms import Ollama
-
+import os
 from langchain.prompts import ChatPromptTemplate
 from fastapi.responses import RedirectResponse
 from langserve import add_routes
@@ -17,7 +17,11 @@ from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain.schema import StrOutputParser
 import uvicorn
 
-llm = Ollama(model="brutus")
+os.environ["LANGCHAIN_TRACING_V2"]="true"
+os.environ["LANGCHAIN_API_KEY"]="LANGCHAIN_API_KEY"
+os.environ["LANGCHAIN_PROJECT"]="brutus"
+
+llm = Ollama(model="llama-7b")
 bge_embeddings = HuggingFaceBgeEmbeddings(model_name="BAAI/bge-small-en-v1.5", 
 encode_kwargs={"normalize_embeddings": True})
 
@@ -57,7 +61,7 @@ app = FastAPI(
     title="I am here to Serve Brutus",
     description="Endpoints of Brutus to be used in your application"
 )
-prompt_template = """You are an AI assistant created by Brutus, Use the provided context to answer the user question in detail and bullets if needed. If you don't know the answer, just say you don't know
+prompt_template = """You are an AI assistant created by Brutus, Use the provided context to answer the user question. If you don't know the answer, just say I need more context
 
 Context:
 {context}
