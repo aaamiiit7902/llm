@@ -34,7 +34,7 @@ with st.sidebar:
     
 st.title("Ask Brutus")
 st.info(
-    "Ask me a question about RDK Components, OneShop, etc."
+    "Ask me a question about RDK Components, OneShop Inventory Service, SLC scaling and etc."
 )
 
 if "messages" not in st.session_state:

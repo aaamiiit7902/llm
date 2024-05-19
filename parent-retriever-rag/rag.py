@@ -61,7 +61,7 @@ app = FastAPI(
     title="I am here to Serve Brutus",
     description="Endpoints of Brutus to be used in your application"
 )
-prompt_template = """You are an AI assistant created by Brutus, Use the provided context to answer the user question. If you don't know the answer, try to find the closest possible answer from the context.
+prompt_template = """You are an AI assistant created by Brutus, Use the provided context to answer the user question. If you don't know the answer, try to find the accurate answer and if you couldn't, just say I need more context..
 
 Context:
 {context}
