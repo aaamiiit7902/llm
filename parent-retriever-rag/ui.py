@@ -27,7 +27,7 @@ with st.sidebar:
     st.markdown(
         """
         Hi! I am Brutus, created by Amit and Aayush. I'm here to assist you with your queries related to the Opensource RDK Broadband Ecosystem – its microservices, APIs, configrations, monitoring & observability, as well as some info about OneShop Inventory and Sales Catalog. \n
-        Feel free to ask me anything — I'm here to help! Please note, I am still in development, so I might not be perfect yet, but I'm continuously learning and improving. 😄 \n
+        Feel free to ask me anything — I'm here to help! I know about a lot about RDK – Petasos, Xmidt, Talaria, Scytale, Caduceus, Argus, etc. Do note that I'mn still learning. \n
         Looking forward to assisting you! 
         """
     )
